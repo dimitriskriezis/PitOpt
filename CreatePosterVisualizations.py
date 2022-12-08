@@ -18,6 +18,20 @@ def GetPitStopSchedule(driverNumber):
         row = [int(x) for x in next(csv_reader)]
     return row
 
+def GetRealPitStopSchedule(driverNumber):
+    row = []
+    with open('DATA/DRIVER' + str(driverNumber) + '/RealPitStopSchedule.csv') as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',')
+        row = [int(x) for x in next(csv_reader)]
+    return row
+
+def GetRealTyreSchedule(driverNumber):
+    row = []
+    with open('DATA/DRIVER' + str(driverNumber) + '/RealTyreSchedule.csv') as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',')
+        row = [x for x in next(csv_reader)]
+    return row
+
 def GetTyreSchedule(driverNumber):
     row = []
     with open('DATA/DRIVER' + str(driverNumber) + '/TyreSchedule.csv') as csv_file:
@@ -27,7 +41,7 @@ def GetTyreSchedule(driverNumber):
 
 # create a column with the color for each department
 def color(row):
-    c_dict = {'SOFT 0':'#E64646', 'HARD':'#E69646', 'MEDIUM 0':'#34D05C', 'SOFT 4':'#34D0C3', 'IT':'#3475D0'}
+    c_dict = {'SOFT 0':'#E64646', 'HARD 0':'#E69646', 'MEDIUM 0':'#34D05C', 'SOFT 4':'#34D0C3', 'IT':'#3475D0'}
     return c_dict[row['Tyre']]
 
 
@@ -40,16 +54,33 @@ def AppendToDataFrame(driverNumber,df):
     pitStopSchedule.append(70)
     for count, value in enumerate(pitStopSchedule):
         print(count)
-        df.loc[len(df.index)] = ["Driver" + str(driverNumber),x[count],l[count],pitStopSchedule[count],pitStopSchedule[count] - l[count]]
+        df.loc[len(df.index)] = ["Driver " + str(driverNumber) + " Optimized",x[count],l[count],pitStopSchedule[count],pitStopSchedule[count] - l[count]]
+
+def AppendToDataFrameReal(driverNumber,df):
+    pitStopSchedule = GetRealPitStopSchedule(driverNumber)
+    tyreSchedule = GetRealTyreSchedule(driverNumber)
+    l = pitStopSchedule.copy()
+    l.insert(0,0)
+    x = [tyreSchedule[x-1] for x in l]
+    pitStopSchedule.append(70)
+    for count, value in enumerate(pitStopSchedule):
+        print(count)
+        df.loc[len(df.index)] = ["Driver " + str(driverNumber) + " Real",x[count],l[count],pitStopSchedule[count],pitStopSchedule[count] - l[count]]
+
 
 
 df  = pd.DataFrame(columns = ['Driver','Tyre','Start','Stop','Duration'])
 
 AppendToDataFrame(4,df)
 AppendToDataFrame(16,df)
+AppendToDataFrameReal(4,df)
+AppendToDataFrameReal(16,df)
 
+print(df)
 
-c_dict = {'SOFT 4':'#E64646', 'HARD':'#E69646', 'MEDIUM 0':'#34D05C', 'SOFT 0':'#34D0C3'}
+print(type(df['Tyre'][0]))
+
+c_dict = {'SOFT 4':'#E64646', 'HARD 0':'#E69646', 'MEDIUM 0':'#34D05C', 'SOFT 0':'#34D0C3'}
 legend_elements = [Patch(facecolor=c_dict[i], label=i)  for i in c_dict]
 
 df['color'] = df.apply(color, axis=1)
