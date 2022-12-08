@@ -7,109 +7,280 @@ import matplotlib.dates
 from scipy import stats
 import numpy as np
 
+tyreAvailability = {"SOFT": 8, "MEDIUM": 3, "HARD": 2}
+driver = "16"
+
+fuelCapacity = 110
+num_laps = 70
+
 def convert(td):
     print(td.components)
     time = td.components.minutes*60 + td.components.seconds
     time = time * 1000 + td.components.milliseconds
     return time
 
-# fastf1.Cache.enable_cache('path/to/cache/')  
+def get_tyres_used(session_name):
+    session = fastf1.get_session(2022, 'hungary', session_name)
+    session.load()
+    
+    session_data = session.laps[["DriverNumber", "LapTime", "LapNumber", "PitOutTime", "PitInTime", "Compound", "TyreLife", "Stint", "IsAccurate"]]
 
-fuelCapacity = 110
-num_laps = 70
+    tyre_types = {"SOFT":[], "MEDIUM":[], "HARD": []}
+    stints = {}
+    prev_life = 0
+    prev_type = ""
+    current_stint = 1
+    appendTo = 1
+    seq = []
+    driver_index = 0
+    initTyreLife = 1
+    for index, lap in session_data.iterlaps():
+        if lap["Compound"] not in tyre_types:
+            continue    
+        if lap["DriverNumber"] == driver:
+            print(lap["LapTime"], " ", lap["LapNumber"], " ", lap["Compound"], " ", lap["TyreLife"], " ", lap["Stint"])
+            tyreLife = int(lap["TyreLife"])
+        
+            
+            if (tyreLife <= prev_life or prev_type != lap["Compound"]) and driver_index>0 : # tyre change occurred change stint
+                
+                if initTyreLife == 1:
+                    appendTo = current_stint
+                    
+                else:
+                    for stint in tyre_types[prev_type]:
+                        if stints[stint][-1] == initTyreLife - 1:
+                            appendTo = stint
+
+                if appendTo not in stints:
+                    stints[appendTo] = seq
+                    tyre_types[prev_type].append(current_stint) 
+                else: 
+                    stints[appendTo].extend(seq)
+
+                
+                seq = []
+                initTyreLife = tyreLife                
+                current_stint+=1
+            seq.append(tyreLife)  
+
+            prev_life = tyreLife
+            prev_type = lap["Compound"]
+            driver_index+=1
+
+
+    if prev_type in tyre_types:
+        if initTyreLife == 1:
+            appendTo = current_stint
+            
+        else:
+            for stint in tyre_types[prev_type]:
+                if stints[stint][-1] == initTyreLife - 1:
+                    appendTo = stint
+
+        if appendTo not in stints:
+            stints[appendTo] = seq
+            tyre_types[prev_type].append(current_stint) 
+        else: 
+            stints[appendTo].extend(seq)
+    
+    return tyre_types, stints
+
+def aggregate_tyres(stints, stint_types):
+    new_stints = {}
+    for stint in stints:
+        slope, intercept, r, p, std_err = stats.linregress(stints[stint][0], stints[stint][1])
+        def myfunc(x):
+            return slope * x + intercept
+
+        indices = [i for i in range(0, 2*num_laps)]
+        reg_results = list(map(myfunc, indices))
+        new_stints[stint] = [indices, reg_results]
+
+    final_stint_types = {}
+    for stint_type in stint_types:
+        all = []
+        for stint in stint_types[stint_type]:
+            all.append(new_stints[stint][1])
+        all = np.mean(np.array(all), axis = 0)
+        final_stint_types[stint_type] = [indices, all]
+
+    return final_stint_types
+    
+
+
+fastf1.Cache.enable_cache('cache/')  
+
+
 fuel_per_lap = fuelCapacity/num_laps
 laptime_per_kg_of_fuel = 0.03 * 1000 # milliseconds
 laptime_gained_per_lap = laptime_per_kg_of_fuel * fuel_per_lap
 
 
-session = fastf1.get_session(2022, 'hungary', 'race')
-print(session.load())
-print(session.laps.columns)
-session_data = session.laps[["DriverNumber", "LapTime", "LapNumber", "PitOutTime", "PitInTime", "Compound", "TyreLife", "Stint", "IsAccurate"]]
-print(session_data)
-for index, lap in session_data.iterlaps():
-    if lap["DriverNumber"] == "16":
+# session_fp1 = fastf1.get_session(2022, 'hungary', 'practice 1')
+# session_fp1.load()
+# print(session_fp1)
+# session_fp1_data = session_fp1.laps[["DriverNumber", "LapTime", "LapNumber", "PitOutTime", "PitInTime", "Compound", "TyreLife", "Stint", "IsAccurate"]]
+
+# for index, lap in session_fp1_data.iterlaps():
+#     if lap["DriverNumber"] == driver:
+#         print(lap["LapTime"], " ", lap["LapNumber"], " ", lap["Compound"], " ", lap["TyreLife"], " ", lap["Stint"])
+# print()
+# print("fp2")
+# print()
+
+# session_fp2 = fastf1.get_session(2022, 'hungary', 'practice 2')
+# session_fp2.load()
+# session_fp2_data = session_fp2.laps[["DriverNumber", "LapTime", "LapNumber", "PitOutTime", "PitInTime", "Compound", "TyreLife", "Stint", "IsAccurate"]]
+
+# for index, lap in session_fp2_data.iterlaps():
+#     if lap["DriverNumber"] == driver:
+#         print(lap["LapTime"], " ", lap["LapNumber"], " ", lap["Compound"], " ", lap["TyreLife"], " ", lap["Stint"])
+# print()
+# print("FP3")
+# print()
+
+
+# session_fp2 = fastf1.get_session(2022, 'hungary', 'practice 3')
+# session_fp2.load()
+# session_fp2_data = session_fp2.laps[["DriverNumber", "LapTime", "LapNumber", "PitOutTime", "PitInTime", "Compound", "TyreLife", "Stint", "IsAccurate"]]
+
+# for index, lap in session_fp2_data.iterlaps():
+#     if lap["DriverNumber"] == driver:
+#         print(lap["LapTime"], " ", lap["LapNumber"], " ", lap["Compound"], " ", lap["TyreLife"], " ", lap["Stint"])
+# print()
+# print("QUALIFYING")
+# print()
+
+# session_quali = fastf1.get_session(2022, 'hungary', 'q')
+# session_quali.load()
+# session_quali_data = session_quali.laps[["DriverNumber", "LapTime", "LapNumber", "PitOutTime", "PitInTime", "Compound", "TyreLife", "Stint", "IsAccurate"]]
+
+# for index, lap in session_quali_data.iterlaps():
+#     if lap["DriverNumber"] == driver:
+#         print(lap["LapTime"], " ", lap["LapNumber"], " ", lap["Compound"], " ", lap["TyreLife"], " ", lap["Stint"])
+
+######################## ANALYZING RACE DATA ########################
+#####################################################################
+tyre_types_fp1 , stints_fp1 = get_tyres_used("practice 1")
+print(tyre_types_fp1)
+print(stints_fp1)
+tyre_types_fp2 , stints_fp2 = get_tyres_used("practice 2")
+print(tyre_types_fp2)
+print(stints_fp2)
+tyre_types_fp3 , stints_fp3 = get_tyres_used("practice 3")
+print(tyre_types_fp3)
+print(stints_fp3)
+tyre_types_quali , stints_quali = get_tyres_used("qualifying")
+print(tyre_types_quali)
+print(stints_quali)
+
+tyre_types_all = [tyre_types_fp1, tyre_types_fp2, tyre_types_fp3, tyre_types_quali]
+tyre_stints_all = [stints_fp1, stints_fp2, stints_fp3, stints_quali]
+tyres_used = {"SOFT": [], 
+            "MEDIUM": [], 
+            "HARD": []}
+
+for i in range(len(tyre_types_all)):
+    for type in tyre_types_all[i]:
+        for stint in tyre_types_all[i][type]:
+            val = tyre_stints_all[i][stint][-1]
+            print(val)
+            tyres_used[type].append(val)
+
+print(tyres_used)
+
+
+tyres_avail = {"SOFT": [x + 1 for x in tyres_used["SOFT"]], 
+            "MEDIUM": [x + 1 for x in tyres_used["MEDIUM"]], 
+            "HARD": [x + 1 for x in tyres_used["HARD"]]}
+
+for type in tyres_avail:
+    for i in range(len(tyres_avail[type]), tyreAvailability[type]):
+        tyres_avail[type].append(0)
+
+        
+print(tyres_avail)
+
+
+
+print()
+print()
+print("RACE DATA")
+print()
+print()
+
+session_race = fastf1.get_session(2022, 'hungary', 'race')
+print(session_race.load())
+print(session_race.laps.columns)
+session_race_data = session_race.laps[["DriverNumber", "LapTime", "LapNumber", "PitOutTime", "PitInTime", "Compound", "TyreLife", "Stint", "IsAccurate"]]
+print(session_race_data)
+for index, lap in session_race_data.iterlaps():
+    if lap["DriverNumber"] == driver:
         print(lap["LapTime"], " ", lap["LapNumber"], " ", lap["Compound"], " ", lap["TyreLife"], " ", lap["Stint"])
 
-print(session_data[session_data["DriverNumber"] == '16'])
+print(session_race_data[session_race_data["DriverNumber"] == driver])
 x = []
 y = []
 z = []
 stints = []
+type_array = []
 print()
 
-for index, lap in session_data.iterlaps():
-    if (lap["DriverNumber"] == '16' and lap["IsAccurate"]):
-        x.append(lap["LapNumber"])
+stint_types = {"SOFT": [], "MEDIUM": [], "HARD": []} ## holds tyre type for each stint
+
+for index, lap in session_race_data.iterlaps():
+    if (lap["DriverNumber"] == driver and lap["IsAccurate"]):
+        x.append(lap["TyreLife"])
         y.append(convert(lap["LapTime"]) + laptime_gained_per_lap*int(lap["LapNumber"]))
         z.append(int(lap["Stint"]))
-
+        if (int(lap["Stint"]) not in stint_types[lap["Compound"]]):
+            stint_types[lap["Compound"]].append(int(lap["Stint"]))
+        # if(lap["Stint"] not in stint_types):
+        #     stint_types[lap["Stint"]] = lap["Compound"]
+print(stint_types)
+## get stint data
 
 stints = {}
 for i in range(len(y)): 
     if z[i] not in stints:
-        stints[z[i]] = [([x[i]], [y[i]])]
+        stints[z[i]] = [[x[i]] , [y[i]]]
     else:
-        tup = (x[i], y[i])
-        stints[z[i]].append(tup)
+        stints[z[i]][0].append(x[i])
+        stints[z[i]][1].append(y[i])
         
-
 print(stints)
 
-for stint in stints:
-    stints[stint].pop(0)
-    start_lap = min(stints[stint])[0]
-    for i in range(len(stints[stint])):
-        new_pair = (stints[stint][i][0] - start_lap + 1, stints[stint][i][1])
-        stints[stint][i] = new_pair
-    
+# print(stints)
 
-stint1_x = [tup[0] for tup in stints[1]]
-stint1_y = [tup[1] for tup in stints[1]]
+stint_info = aggregate_tyres(stints, stint_types)
 
+plt.plot(stint_info["SOFT"][0], stint_info["SOFT"][1], color = "red", label = "soft")
 
-slope, intercept, r, p, std_err = stats.linregress(stint1_x, stint1_y)
-def myfunc(x):
-  return slope * x + intercept
+plt.plot(stint_info["MEDIUM"][0], stint_info["MEDIUM"][1], color = "yellow", label = "medium")
+plt.plot(stint_info["HARD"][0], stint_info["HARD"][1], color = "grey", label = "hard")
 
+plt.title("Tyre Degradation Graph")
+plt.xlabel("Lap")
+plt.ylabel("Laptime (milliseconds)")
 
-indices = [i for i in range(1, 71)]
-
-mymodel1 = list(map(myfunc, indices))
-print("stint1 slop", slope)
-
-stint3_x = [tup[0] for tup in stints[3]]
-stint3_y = [tup[1] for tup in stints[3]]
-slope, intercept, r, p, std_err = stats.linregress(stint3_x, stint3_y)
-print("stint3 slope", slope)
-
-def myfunc(x):
-  return slope * x + intercept
-mymodel3 = list(map(myfunc, indices))
-
-stints[4].pop()
-stint4_x = [tup[0] for tup in stints[4]]
-stint4_y = [tup[1] for tup in stints[4]]
-slope, intercept, r, p, std_err = stats.linregress(stint4_x, stint4_y)
-print("stint4 slope", slope)
-
-def myfunc(x):
-  return slope * x + intercept
-mymodel4 = list(map(myfunc, indices))
-
-plt.plot(stint1_x, stint1_y, 'o', color = "blue")
-plt.plot(indices, mymodel1, color = "blue")
-
-plt.plot(stint3_x, stint3_y, 'o', color = "red")
-plt.plot(indices, mymodel3, color = "red")
-
-plt.plot(stint4_x, stint4_y, 'o', color = "green")
-plt.plot(indices, mymodel4, color = "green")
+plt.legend()
 # plt.show()
 
-laptimes = [mymodel4, mymodel1, mymodel3]
+info = []
+for tyre_type in tyres_avail:
+    for life in tyres_avail[tyre_type]:
+        degradation = pd.DataFrame(stint_info[tyre_type][1][life:life+num_laps].T, columns = [tyre_type+ " "+str(life)])
+
+        info.append(degradation)
+
+info = pd.concat(info, axis = 1)
+print(info)
+info.to_csv("info.csv")
+
+laptimes = [stint_info["SOFT"][1][0:70], stint_info["MEDIUM"][1][0:70], stint_info["HARD"][1][0:70]]
 
 laptimes = np.array(laptimes)
 laptimes = pd.DataFrame(laptimes)
 laptimes.to_csv("laptimes.csv")
-print(laptimes)
+# print(laptimes)
