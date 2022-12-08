@@ -282,5 +282,5 @@ laptimes = [stint_info["SOFT"][1][0:70], stint_info["MEDIUM"][1][0:70], stint_in
 
 laptimes = np.array(laptimes)
 laptimes = pd.DataFrame(laptimes)
-laptimes.to_csv("laptimes.csv")
+laptimes.to_csv("DATA/DRIVER" + driver + "/laptimes.csv")
 # print(laptimes)
