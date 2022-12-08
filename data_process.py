@@ -8,7 +8,7 @@ from scipy import stats
 import numpy as np
 
 tyreAvailability = {"SOFT": 8, "MEDIUM": 3, "HARD": 2}
-driver = "16"
+driver = "4"
 
 fuelCapacity = 110
 num_laps = 70
@@ -276,7 +276,7 @@ for tyre_type in tyres_avail:
 
 info = pd.concat(info, axis = 1)
 print(info)
-info.to_csv("info.csv")
+info.to_csv("DATA/DRIVER" + driver + "/info.csv")
 
 laptimes = [stint_info["SOFT"][1][0:70], stint_info["MEDIUM"][1][0:70], stint_info["HARD"][1][0:70]]
 
