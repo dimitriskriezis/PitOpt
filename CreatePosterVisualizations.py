@@ -27,13 +27,16 @@ def GetTyreSchedule(driverNumber):
 pitStopSchedule = GetPitStopSchedule(4)
 tyreSchedule = GetTyreSchedule(4)
 
-print(tyreSchedule)
+l = pitStopSchedule.copy()
+l.insert(0,0)
+x = [tyreSchedule[x-1] for x in l]
 
+pitStopSchedule.append(70)
+print(x)
+print(pitStopSchedule)
 
-
-
-fig = plt.figure()
-ax = fig.add_subplot(111)
-jobs = ["1","2","3"]
-ax.barh(jobs, pitStopSchedule, align='center', height=.25, color='#00ff00',label='wait time')
-plt.show()
+# fig = plt.figure()
+# ax = fig.add_subplot(111)
+# jobs = ["1","2","3"]
+# ax.barh(jobs, pitStopSchedule, align='center', height=.25, color='#00ff00',label='wait time')
+# plt.show()
