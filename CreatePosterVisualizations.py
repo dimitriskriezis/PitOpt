@@ -78,6 +78,8 @@ AppendToDataFrameReal(16,df,'Leclerc -')
 
 print(df)
 
+df = df.sort_values('Driver')
+
 print(type(df['Tyre'][0]))
 
 c_dict = {'SOFT 4':'#E64646', 'HARD 0':'#E69646', 'MEDIUM 0':'#34D05C', 'SOFT 0':'#34D0C3'}
