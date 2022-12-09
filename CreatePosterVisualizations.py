@@ -88,8 +88,16 @@ df['color'] = df.apply(color, axis=1)
 fig, ax = plt.subplots(1, figsize=(16,6))
 ax.barh(df.Driver, df.Duration, left=df.Start,color=df.color,edgecolor = 'black')
 
+plt.xticks(fontsize=20)
+plt.yticks(fontsize=20)
 
-plt.legend(handles=legend_elements)
 
+ax.set_xlim(0,90)
 
-plt.show()
+plt.title('Real vs Optimized Tyre Schedules',fontsize=20)
+
+plt.legend(loc="upper right",handles=legend_elements,fontsize=20)
+
+plt.savefig('TyreScheduleComparison.png',bbox_inches='tight',dpi=1000,transparent=True)
+
+# plt.show()

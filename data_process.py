@@ -8,7 +8,7 @@ from scipy import stats
 import numpy as np
 
 tyreAvailability = {"SOFT": 8, "MEDIUM": 3, "HARD": 2}
-driver = "4"
+driver = "16"
 
 fuelCapacity = 110
 num_laps = 70
@@ -255,17 +255,28 @@ print(stints)
 
 stint_info = aggregate_tyres(stints, stint_types)
 
-plt.plot(stint_info["SOFT"][0], stint_info["SOFT"][1], color = "red", label = "soft")
+x = [x for x in stint_info["SOFT"][0]]
+y = [i/1000 for i in stint_info["SOFT"][1]]
+plt.plot(x, y, color = "red", label = "SOFT",linewidth = 3)
 
-plt.plot(stint_info["MEDIUM"][0], stint_info["MEDIUM"][1], color = "yellow", label = "medium")
-plt.plot(stint_info["HARD"][0], stint_info["HARD"][1], color = "grey", label = "hard")
+x = [x for x in stint_info["MEDIUM"][0]]
+y = [i/1000 for i in stint_info["MEDIUM"][1]]
+plt.plot(x, y, color = "green", label = "MEDIUM",linewidth = 3)
 
-plt.title("Tyre Degradation Graph")
-plt.xlabel("Lap")
-plt.ylabel("Laptime (milliseconds)")
+x = [x for x in stint_info["HARD"][0]]
+y = [i/1000 for i in stint_info["HARD"][1]]
+plt.plot(x, y, color = "grey", label = "HARD",linewidth = 3)
+
+plt.title("Driver " + driver + " Tyre Degradation Graph", fontsize=20)
+plt.xlabel("Lap", fontsize=20)
+plt.ylabel("Laptime (seconds)", fontsize=20)
+plt.yticks(fontsize=20)
+plt.xticks(fontsize=20)
 
 plt.legend()
-# plt.show()
+plt.tight_layout()
+
+plt.savefig('TyreDegradation-Driver' + driver + '.png',bbox_inches='tight',dpi=1000,transparent=True)
 
 info = []
 for tyre_type in tyres_avail:

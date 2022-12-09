@@ -102,11 +102,12 @@ rects1 = ax.bar(x - width/2, real, width, label='Real')
 rects2 = ax.bar(x + width/2, opt, width, label='Optimized')
 
 # Add some text for labels, title and custom x-axis tick labels, etc.
-ax.set_ylabel('Sprint Duration (seconds)')
-ax.set_title('Sprint Duration - Real vs Optimized')
-ax.set_xticks(x, labels)
+ax.set_ylabel('Sprint Duration (seconds)',fontsize=20)
+ax.set_title('Sprint Duration - Real vs Optimized',fontsize=20)
+ax.set_xticks(x, labels,fontsize=20)
+plt.yticks(fontsize=20)
 ax.set_ylim(0,8000)
-ax.legend(loc="upper right")
+ax.legend(loc="upper right",fontsize=10)
 
 
 ax.bar_label(rects1, padding=3)
@@ -114,4 +115,7 @@ ax.bar_label(rects2, padding=3)
 
 fig.tight_layout()
 
-plt.show()
+plt.savefig('SprintDurationComparison.png',bbox_inches='tight',dpi=1000,transparent=True)
+
+
+# plt.show()
