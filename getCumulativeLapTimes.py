@@ -90,7 +90,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-labels = ['Driver 4', 'Driver 16']
+labels = ['Norris', 'Leclerc']
 real = [cumTime4Real, cumTime16Real]
 opt = [cumTime4, cumTime16]
 

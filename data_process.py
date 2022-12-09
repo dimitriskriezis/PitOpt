@@ -267,7 +267,15 @@ x = [x for x in stint_info["HARD"][0]]
 y = [i/1000 for i in stint_info["HARD"][1]]
 plt.plot(x, y, color = "grey", label = "HARD",linewidth = 3)
 
-plt.title("Driver " + driver + " Tyre Degradation Graph", fontsize=20)
+if driver == "4":
+    Name  = 'Norris'
+elif driver == "16":
+    Name = 'Leclerc'
+
+# labels = ['Norris', 'Leclerc']
+
+
+plt.title("Tyre Degradation - " + Name, fontsize=20)
 plt.xlabel("Lap", fontsize=20)
 plt.ylabel("Laptime (seconds)", fontsize=20)
 plt.yticks(fontsize=20)

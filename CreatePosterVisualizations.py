@@ -45,7 +45,7 @@ def color(row):
     return c_dict[row['Tyre']]
 
 
-def AppendToDataFrame(driverNumber,df):
+def AppendToDataFrame(driverNumber,df,Name):
     pitStopSchedule = GetPitStopSchedule(driverNumber)
     tyreSchedule = GetTyreSchedule(driverNumber)
     l = pitStopSchedule.copy()
@@ -54,9 +54,9 @@ def AppendToDataFrame(driverNumber,df):
     pitStopSchedule.append(70)
     for count, value in enumerate(pitStopSchedule):
         print(count)
-        df.loc[len(df.index)] = ["Driver " + str(driverNumber) + " Optimized",x[count],l[count],pitStopSchedule[count],pitStopSchedule[count] - l[count]]
+        df.loc[len(df.index)] = [Name + " Optimized",x[count],l[count],pitStopSchedule[count],pitStopSchedule[count] - l[count]]
 
-def AppendToDataFrameReal(driverNumber,df):
+def AppendToDataFrameReal(driverNumber,df,Name):
     pitStopSchedule = GetRealPitStopSchedule(driverNumber)
     tyreSchedule = GetRealTyreSchedule(driverNumber)
     l = pitStopSchedule.copy()
@@ -65,16 +65,16 @@ def AppendToDataFrameReal(driverNumber,df):
     pitStopSchedule.append(70)
     for count, value in enumerate(pitStopSchedule):
         print(count)
-        df.loc[len(df.index)] = ["Driver " + str(driverNumber) + " Real",x[count],l[count],pitStopSchedule[count],pitStopSchedule[count] - l[count]]
+        df.loc[len(df.index)] = [Name + " Real",x[count],l[count],pitStopSchedule[count],pitStopSchedule[count] - l[count]]
 
 
 
 df  = pd.DataFrame(columns = ['Driver','Tyre','Start','Stop','Duration'])
 
-AppendToDataFrame(4,df)
-AppendToDataFrame(16,df)
-AppendToDataFrameReal(4,df)
-AppendToDataFrameReal(16,df)
+AppendToDataFrame(4,df,'Norris -')
+AppendToDataFrame(16,df,'Leclerc -')
+AppendToDataFrameReal(4,df,'Norris -')
+AppendToDataFrameReal(16,df,'Leclerc -')
 
 print(df)
 
