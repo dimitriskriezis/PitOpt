@@ -91,7 +91,7 @@ ax.barh(df.Driver, df.Duration, left=df.Start,color=df.color,edgecolor = 'black'
 plt.xticks(fontsize=20)
 plt.yticks(fontsize=20)
 
-
+ax.set_xlabel('Lap Number',fontsize=20)
 ax.set_xlim(0,90)
 
 plt.title('Real vs Optimized Tyre Schedules',fontsize=20)
